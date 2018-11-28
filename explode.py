@@ -1,4 +1,7 @@
 def explode(df, explode_column):
+    """ This function explodes a column (whose elements are Python lists) in a similar
+        manner to the equivalent Spark explode method """
+    
     df = df.reset_index(drop=True)
     df['explode_id'] = df.index
     
