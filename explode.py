@@ -1,7 +1,11 @@
 def explode(df, explode_column):
     
     """ This function explodes a column (whose elements are Python lists) in a similar
-        manner to the equivalent Spark explode method """
+        to the equivalent Spark SQL .explode() method.
+        
+        df: Pandas DataFrame
+        explode_column: str, name of column to explode
+    """
     
     df = df.reset_index(drop=True)
     df['explode_id'] = df.index
