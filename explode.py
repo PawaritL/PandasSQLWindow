@@ -1,7 +1,7 @@
 def explode(df, explode_column):
     
-    """ This function explodes a column (whose elements are Python lists) in a similar
-        to the equivalent Spark SQL .explode() method.
+    """ This function explodes a column (whose elements are Python iterables) in a similar
+        manner to the Spark SQL .explode() method.
         
         df: Pandas DataFrame
         explode_column: str, name of column to explode
