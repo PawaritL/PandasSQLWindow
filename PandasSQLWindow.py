@@ -14,9 +14,8 @@ class PandasSQLWindow:
     SQL Window Functions in a unified, simple Pandas API.
     Follows the ... PARTITION BY ... ORDER BY ... format from SQL.
     
-    Especially helpful for working with data with logically partitioned 'groups' 
-    or for those more familiar with
-    Window Functions from SQL or Apache Spark.
+    Especially helpful for working with data with many logically-partitioned 'groups' 
+    or for those more familiar with Window Functions from SQL or Apache Spark.
     
     Commonly requested functions:
     last() - finds the last previously known non-nan value 
