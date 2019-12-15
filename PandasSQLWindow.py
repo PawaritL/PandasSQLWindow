@@ -59,32 +59,52 @@ class PandasSQLWindow:
       self.rolling_window = self.window.rolling(time_rolling, min_periods=1)
     return
 
+  @staticmethod
+  def postprocess(object, reshape=False, sort_index=True):
+    if reshape: shaped = object.reset_index(level=0, drop=True)
+    else: shaped = object
+      
+    if sort_index: 
+      return shaped.sort_index()
+    else: 
+      return shaped
+      
   def shift(self, column, periods=1):
-    return self.window[column].shift(periods=periods).sort_index()
+    s = self.window[column].shift(periods=periods)
+    return self.postprocess(s)
   def lag(self, column, periods=1):
     return self.shift(column, periods=periods)
   def lead(self, column, periods=1):
     return self.shift(column, periods=-periods)
 
   def rank(self, method='first'):
-    return self.window[self.order_by].rank(method=method).astype(int).sort_index()
+    s = self.window[self.order_by].rank(method=method).astype(int)
+    return self.postprocess(s)
   def cumsum(self, column):
-    return self.window[column].cumsum().sort_index()
+    s = self.window[column].cumsum()
+    return self.postprocess(s)
 
   def expanding_min(self, column):
-    return self.window[column].expanding().min().reset_index(level=0, drop=True).sort_index()
+    s = self.window[column].expanding().min()
+    return self.postprocess(s, reshape=True)
   def expanding_max(self, column):
-    return self.window[column].expanding().max().reset_index(level=0, drop=True).sort_index()
+    s = self.window[column].expanding().max()
+    return self.postprocess(s, reshape=True)
   def expanding_mean(self, column):
-    return self.window[column].expanding().mean().reset_index(level=0, drop=True).sort_index()
+    s = self.window[column].expanding().mean()
+    return self.postprocess(s, reshape=True)
   def expanding_sum(self, column):
     return self.cumsum(column)
 
   def rolling_min(self, column):
-    return self.rolling_window[column].min().reset_index(level=0, drop=True).sort_index()
+    s = self.rolling_window[column].min()
+    return self.postprocess(s, reshape=True)    
   def rolling_max(self, column):
-    return self.rolling_window[column].max().reset_index(level=0, drop=True).sort_index()
+    s = self.rolling_window[column].max()
+    return self.postprocess(s, reshape=True)
   def rolling_mean(self, column):
-    return self.rolling_window[column].mean().reset_index(level=0, drop=True).sort_index()
+    s = self.rolling_window[column].mean()
+    return self.postprocess(s, reshape=True)
   def rolling_sum(self, column):
-    return self.rolling_window[column].sum().reset_index(level=0, drop=True).sort_index()
+    s = self.rolling_window[column].sum()
+    return self.postprocess(s, reshape=True)
