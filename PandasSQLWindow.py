@@ -75,11 +75,8 @@ class PandasSQLWindow:
   def postprocess(object, reshape=False, sort_index=True):
     if reshape: shaped = object.reset_index(level=0, drop=True)
     else: shaped = object
-      
-    if sort_index: 
-      return shaped.sort_index()
-    else: 
-      return shaped
+    if sort_index: return shaped.sort_index()
+    else: return shaped
       
   def shift(self, column, periods=1):
     s = self.window[column].shift(periods=periods)
