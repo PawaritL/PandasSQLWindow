@@ -17,6 +17,10 @@ class PandasSQLWindow:
     or for those more familiar with
     Window Functions from SQL or Apache Spark.
     
+    The current list only serves to demonstrate a few functionalities
+    and is by no means exhaustive. Please feel free to reach out with
+    any suggestions or requests.
+    
     Parameters
     ----------
 
