@@ -3,7 +3,7 @@ import pandas as pd
 def explode(df, explode_column):
     
     """ 
-        **UPDATE**: .explode() now included in Pandas 0.25.0 official release 
+        UPDATE: .explode() now included in Pandas 0.25.0 official release 
     
         This function explodes a column (whose elements are Python iterables) in a similar
         manner to the Spark SQL or PostgreSQL explode methods.
