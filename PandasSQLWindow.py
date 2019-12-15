@@ -40,9 +40,7 @@ class PandasSQLWindow:
       to consider for rolling functions
       (e.g. rolling_min, rolling_max, rolling_mean)
     """
-
-
-
+    
     if (rows_rolling is not None) and (time_rolling is not None):
       raise InputError("window_rows and window_time cannot both be specified")
 
