@@ -11,10 +11,11 @@ class PandasSQLWindow:
                time_rolling=None):
     
     """
-    SQL-like or Window Functions in a unified Pandas API.
+    SQL Window Functions in a unified, simple Pandas API.
     
-    Helpful when working with grouped data and for those more familiar with
-    Window functions from SQL or Apache Spark.
+    Especially helpful for working with data with numerous 'groups' 
+    or for those more familiar with
+    Window Functions from SQL or Apache Spark.
     
     Parameters
     ----------
