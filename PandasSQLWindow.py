@@ -17,6 +17,14 @@ class PandasSQLWindow:
     or for those more familiar with
     Window Functions from SQL or Apache Spark.
     
+    Commonly requested functions:
+    last() - finds the last previously known non-nan value 
+             before the current row, within the same group
+    lag() - find the preceding value 
+            before the current row, within the same group
+    lead() - finds the succeeding value
+             after the current row, within the same group
+    
     The current list only serves to demonstrate a few functionalities
     and is by no means exhaustive. Please feel free to reach out with
     any suggestions or requests.
@@ -35,7 +43,7 @@ class PandasSQLWindow:
 
     ascending: bool (default=True)
       Sort ascending vs. descending
-
+    
     rows_rolling: int (default=None)
       Number of rows to consider for rolling functions
       (e.g. rolling_min, rolling_max, rolling_mean)
@@ -80,11 +88,15 @@ class PandasSQLWindow:
   def lead(self, column, periods=1):
     return self.shift(column, periods=-periods)
 
+  def last(self, column):
+    """
+    Finds last previously known non-nan value.
+    """
+    s = self.window[column].shift().ffill()
+    return self.postprocess(s)
+
   def rank(self, method='first'):
     s = self.window[self.order_by].rank(method=method).astype(int)
-    return self.postprocess(s)
-  def cumsum(self, column):
-    s = self.window[column].cumsum()
     return self.postprocess(s)
 
   def expanding_min(self, column):
@@ -97,7 +109,8 @@ class PandasSQLWindow:
     s = self.window[column].expanding().mean()
     return self.postprocess(s, reshape=True)
   def expanding_sum(self, column):
-    return self.cumsum(column)
+    s = self.window[column].expanding().sum()
+    return self.postprocess(s, reshape=True)
 
   def rolling_min(self, column):
     s = self.rolling_window[column].min()
