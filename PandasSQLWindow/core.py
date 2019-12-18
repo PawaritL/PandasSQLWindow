@@ -77,18 +77,16 @@ class Window:
         return self.shift(column, **kwargs)
     def lead(self, column, **kwargs):
         return self.shift(column, **kwargs)
-
     def last(self, column):
-        """
-        Finds last previously known non-nan value.
-        """
+        """Finds last previously known non-nan value."""
         s = self.window[column].shift().ffill()
         return self.postprocess(s)
-
     def rank(self, **kwargs):
-        kwargs.setdefault('method', 'first')
         s = self.window[self.order_by].rank(**kwargs).astype(int)
         return self.postprocess(s)
+    def count(self, **kwargs):
+        kwargs.setdefault('method', 'first')
+        return self.rank(**kwargs)
 
     #-------- Expanding Window Functions --------#
     
@@ -112,9 +110,14 @@ class Window:
     def expanding_median(self, column, **kwargs):
         kwargs["quantile"] = 0.5
         return self.expanding_quantile(column, **kwargs)
+    def expanding_var(self, column, **kwargs):
+        s = self.window[column].expanding().var(**kwargs)
+        return self.postprocess(s, reshape=True)
     def expanding_std(self, column, **kwargs):
         s = self.window[column].expanding().std(**kwargs)
         return self.postprocess(s, reshape=True)
+    def expanding_count(self, **kwargs):
+        return self.count(**kwargs)
 
     #-------- Rolling Window Functions --------#
     
@@ -146,9 +149,17 @@ class Window:
         self.check_rolling()
         kwargs["quantile"] = 0.5
         return self.rolling_quantile(column, **kwargs)
+    def rolling_var(self, column, **kwargs):
+        self.check_rolling()
+        s = self.rolling_window[column].var(**kwargs)
+        return self.postprocess(s, reshape=True)
     def rolling_std(self, column, **kwargs):
         self.check_rolling()
         s = self.rolling_window[column].std(**kwargs)
+        return self.postprocess(s, reshape=True)
+    def rolling_mode(self, column, **kwargs):
+        self.check_rolling()
+        s = self.rolling_window[column].mode(**kwargs)
         return self.postprocess(s, reshape=True)
     
     #-------- Overload Window Functions --------#   
@@ -156,27 +167,24 @@ class Window:
     def min(self, column, **kwargs):
         if self.rolling: return self.rolling_min(column, **kwargs)
         else: return self.expanding_min(column, **kwargs)
-    
     def max(self, column, **kwargs):
         if self.rolling: return self.rolling_max(column, **kwargs)
         else: return self.expanding_max(column, **kwargs)
-    
     def mean(self, column, **kwargs):
         if self.rolling: return self.rolling_mean(column, **kwargs)
         else: return self.expanding_mean(column, **kwargs)
-        
     def sum(self, column, **kwargs):
         if self.rolling: return self.rolling_sum(column, **kwargs)
         else: return self.expanding_sum(column, **kwargs)
-        
     def quantile(self, column, **kwargs):
         if self.rolling: return self.rolling_quantile(column, **kwargs)
         else: return self.expanding_quantile(column, **kwargs)
-
     def median(self, column, **kwargs):
         if self.rolling: return self.rolling_median(column, **kwargs)
         else: return self.expanding_median(column, **kwargs)
-        
+    def var(self, column, **kwargs):
+        if self.rolling: return self.rolling_var(column, **kwargs)
+        else: return self.expanding_var(column, **kwargs)
     def std(self, column, **kwargs):
         if self.rolling: return self.rolling_std(column, **kwargs)
         else: return self.expanding_std(column, **kwargs)
