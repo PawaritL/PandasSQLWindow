@@ -90,6 +90,8 @@ class Window:
         s = self.window[self.order_by].rank(method=method).astype(int)
         return self.postprocess(s)
 
+    #-------- Expanding Window Functions --------#
+    
     def expanding_min(self, column):
         s = self.window[column].expanding().min()
         return self.postprocess(s, reshape=True)
@@ -109,7 +111,9 @@ class Window:
         return self.postprocess(s, reshape=True)
     def expanding_median(self, column):
         return self.expanding_quantile(column)
-
+    
+    #-------- Rolling Window Functions --------#
+    
     def check_rolling(self):
         if self.rolling_window is None:
             raise ValueError("To use rolling windows, please specify rows_rolling or time_rolling in Window definition")
