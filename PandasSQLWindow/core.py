@@ -3,10 +3,8 @@ class Window:
     """
     SQL Window Functions in a unified, simple Pandas API.
     Follows the ... PARTITION BY ... ORDER BY ... format from SQL.
-
     Especially helpful for working with data with many logically-partitioned 'groups' 
     or for those more familiar with Window Functions from SQL or Apache Spark.
-
     Commonly requested functions:
     last() - finds the last previously known non-nan value 
              before the current row, within the same group
@@ -14,11 +12,9 @@ class Window:
             before the current row, within the same group
     lead() - finds the succeeding value
              after the current row, within the same group
-
     The current list only serves to demonstrate a few functionalities
     and is by no means exhaustive. Please feel free to reach out with
     any suggestions or requests.
-
     Parameters
     ----------
     data: Pandas DataFrame
@@ -29,7 +25,6 @@ class Window:
       must be datatime-like
     ascending: bool (default=True)
       Sort ascending vs. descending
-
     rows_rolling: int (default=None)
       Number of rows (up to and including the current row) to consider for rolling functions
       (e.g. rolling_min, rolling_max, rolling_mean)
@@ -114,8 +109,9 @@ class Window:
     def expanding_quantile(self, column, **kwargs):
         s = self.window[column].expanding().quantile(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_median(self, column,  **kwargs):
-        return self.expanding_quantile(**kwargs)
+    def expanding_median(self, column, **kwargs):
+        kwargs["quantile"] = 0.5
+        return self.expanding_quantile(column, **kwargs)
     def expanding_std(self, column, **kwargs):
         s = self.window[column].expanding().std(**kwargs)
         return self.postprocess(s, reshape=True)
@@ -148,6 +144,7 @@ class Window:
         return self.postprocess(s, reshape=True)
     def rolling_median(self, column, **kwargs):
         self.check_rolling()
+        kwargs["quantile"] = 0.5
         return self.rolling_quantile(column, **kwargs)
     def rolling_std(self, column, **kwargs):
         self.check_rolling()
@@ -158,28 +155,28 @@ class Window:
         
     def min(self, column, **kwargs):
         if self.rolling: return self.rolling_min(column, **kwargs)
-        else: return self.expanding_min(column **kwargs)
+        else: return self.expanding_min(column, **kwargs)
     
     def max(self, column, **kwargs):
         if self.rolling: return self.rolling_max(column, **kwargs)
-        else: return self.expanding_max(column **kwargs)
+        else: return self.expanding_max(column, **kwargs)
     
     def mean(self, column, **kwargs):
         if self.rolling: return self.rolling_mean(column, **kwargs)
-        else: return self.expanding_mean(column **kwargs)
+        else: return self.expanding_mean(column, **kwargs)
         
     def sum(self, column, **kwargs):
         if self.rolling: return self.rolling_sum(column, **kwargs)
-        else: return self.expanding_sum(column **kwargs)
+        else: return self.expanding_sum(column, **kwargs)
         
     def quantile(self, column, **kwargs):
         if self.rolling: return self.rolling_quantile(column, **kwargs)
-        else: return self.expanding_quantile(column **kwargs)
+        else: return self.expanding_quantile(column, **kwargs)
 
     def median(self, column, **kwargs):
         if self.rolling: return self.rolling_median(column, **kwargs)
-        else: return self.expanding_median(column **kwargs)
+        else: return self.expanding_median(column, **kwargs)
         
     def std(self, column, **kwargs):
         if self.rolling: return self.rolling_std(column, **kwargs)
-        else: return self.expanding_std(column **kwargs)
+        else: return self.expanding_std(column, **kwargs)
