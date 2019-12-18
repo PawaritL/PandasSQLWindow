@@ -101,6 +101,8 @@ class Window:
         def expanding_sum(self, column):
             s = self.window[column].expanding().sum()
             return self.postprocess(s, reshape=True)
+        def cumsum(self, column):
+            return self.expanding_sum(column)
 
         def rolling_min(self, column):
             s = self.rolling_window[column].min()
