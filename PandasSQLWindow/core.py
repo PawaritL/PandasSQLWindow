@@ -48,7 +48,7 @@ class Window:
                  time_rolling=None):
     
         if (rows_rolling is not None) and (time_rolling is not None):
-            raise InputError("window_rows and window_time cannot both be specified")
+            raise ValueError("window_rows and window_time cannot both be specified")
 
         self.partition_by = partition_by
         self.order_by = order_by
@@ -57,62 +57,83 @@ class Window:
         self.time_rolling = None
 
         self.window = data.sort_values(order_by, ascending=ascending).groupby(partition_by)
+        self.rolling_window = None
         if rows_rolling is not None:
             self.rolling_window = self.window.rolling(rows_rolling, min_periods=1)
         elif time_rolling is not None:
             self.rolling_window = self.window.rolling(time_rolling, min_periods=1)
         return
 
-        @staticmethod
-        def postprocess(object, reshape=False, sort_index=True):
-            if reshape: shaped = object.reset_index(level=0, drop=True)
-            else: shaped = object
-            if sort_index: return shaped.sort_index()
-            else: return shaped
+    @staticmethod
+    def postprocess(object, reshape=False, sort_index=True):
+        if reshape: shaped = object.reset_index(level=0, drop=True)
+        else: shaped = object
+        if sort_index: return shaped.sort_index()
+        else: return shaped
 
-        def shift(self, column, periods=1):
-            s = self.window[column].shift(periods=periods)
-            return self.postprocess(s)
-        def lag(self, column, periods=1):
-            return self.shift(column, periods=periods)
-        def lead(self, column, periods=1):
-            return self.shift(column, periods=-periods)
+    def shift(self, column, periods=1):
+        s = self.window[column].shift(periods=periods)
+        return self.postprocess(s)
+    def lag(self, column, periods=1):
+        return self.shift(column, periods=periods)
+    def lead(self, column, periods=1):
+        return self.shift(column, periods=-periods)
 
-        def last(self, column):
-            """
-            Finds last previously known non-nan value.
-            """
-            s = self.window[column].shift().ffill()
-            return self.postprocess(s)
+    def last(self, column):
+        """
+        Finds last previously known non-nan value.
+        """
+        s = self.window[column].shift().ffill()
+        return self.postprocess(s)
 
-        def rank(self, method='first'):
-            s = self.window[self.order_by].rank(method=method).astype(int)
-            return self.postprocess(s)
+    def rank(self, method='first'):
+        s = self.window[self.order_by].rank(method=method).astype(int)
+        return self.postprocess(s)
 
-        def expanding_min(self, column):
-            s = self.window[column].expanding().min()
-            return self.postprocess(s, reshape=True)
-        def expanding_max(self, column):
-            s = self.window[column].expanding().max()
-            return self.postprocess(s, reshape=True)
-        def expanding_mean(self, column):
-            s = self.window[column].expanding().mean()
-            return self.postprocess(s, reshape=True)
-        def expanding_sum(self, column):
-            s = self.window[column].expanding().sum()
-            return self.postprocess(s, reshape=True)
-        def cumsum(self, column):
-            return self.expanding_sum(column)
+    def expanding_min(self, column):
+        s = self.window[column].expanding().min()
+        return self.postprocess(s, reshape=True)
+    def expanding_max(self, column):
+        s = self.window[column].expanding().max()
+        return self.postprocess(s, reshape=True)
+    def expanding_mean(self, column):
+        s = self.window[column].expanding().mean()
+        return self.postprocess(s, reshape=True)
+    def expanding_sum(self, column):
+        s = self.window[column].expanding().sum()
+        return self.postprocess(s, reshape=True)
+    def cumsum(self, column):
+        return self.expanding_sum(column)
+    def expanding_quantile(self, column, q=0.5):
+        s = self.window[column].expanding().quantile(q)
+        return self.postprocess(s, reshape=True)
+    def expanding_median(self, column):
+        return self.expanding_quantile(column)
 
-        def rolling_min(self, column):
-            s = self.rolling_window[column].min()
-            return self.postprocess(s, reshape=True)    
-        def rolling_max(self, column):
-            s = self.rolling_window[column].max()
-            return self.postprocess(s, reshape=True)
-        def rolling_mean(self, column):
-            s = self.rolling_window[column].mean()
-            return self.postprocess(s, reshape=True)
-        def rolling_sum(self, column):
-            s = self.rolling_window[column].sum()
-            return self.postprocess(s, reshape=True)
+    def check_rolling(self):
+        if self.rolling_window is None:
+            raise ValueError("To use rolling windows, please specify rows_rolling or time_rolling in Window definition")
+    
+    def rolling_min(self, column):
+        self.check_rolling()
+        s = self.rolling_window[column].min()
+        return self.postprocess(s, reshape=True)    
+    def rolling_max(self, column):
+        self.check_rolling()
+        s = self.rolling_window[column].max()
+        return self.postprocess(s, reshape=True)
+    def rolling_mean(self, column):
+        self.check_rolling()
+        s = self.rolling_window[column].mean()
+        return self.postprocess(s, reshape=True)
+    def rolling_sum(self, column):
+        self.check_rolling()
+        s = self.rolling_window[column].sum()
+        return self.postprocess(s, reshape=True)
+    def rolling_quantile(self, column, q=0.5):
+        self.check_rolling()
+        s = self.rolling_window[column].quantile(q)
+        return self.postprocess(s, reshape=True)
+    def rolling_median(self, column):
+        self.check_rolling()
+        return self.rolling_quantile(column)
