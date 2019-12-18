@@ -1,1 +1,1 @@
-from .core import PandasSQLWindow
+from .core import Window
