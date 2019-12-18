@@ -49,24 +49,23 @@ class Window:
     
         if (rows_rolling is not None) and (time_rolling is not None):
             raise ValueError("window_rows and window_time cannot both be specified")
+        elif (rows_rolling is not None) or (time_rolling is not None):
+            self.rolling = True
+        else:
+            self.rolling = False
 
         self.partition_by = partition_by
         self.order_by = order_by
         self.ascending = ascending
-        self.mode = None
         self.rows_rolling = None
         self.time_rolling = None
 
         self.window = data.sort_values(order_by, ascending=ascending).groupby(partition_by)
         self.rolling_window = None
         if rows_rolling is not None:
-            self.mode = 'rolling'
             self.rolling_window = self.window.rolling(rows_rolling, min_periods=1)
         elif time_rolling is not None:
-            self.mode = 'rolling'
             self.rolling_window = self.window.rolling(time_rolling, min_periods=1)
-        else:
-            self.mode = 'expanding'
         return
 
     @staticmethod
@@ -158,43 +157,29 @@ class Window:
     #-------- Overload Window Functions --------#   
         
     def min(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_min(column, **kwargs)
-        else:
-            return self.expanding_min(column **kwargs)
+        if self.rolling: return self.rolling_min(column, **kwargs)
+        else: return self.expanding_min(column **kwargs)
     
     def max(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_max(column, **kwargs)
-        else:
-            return self.expanding_max(column **kwargs)
+        if self.rolling: return self.rolling_max(column, **kwargs)
+        else: return self.expanding_max(column **kwargs)
     
     def mean(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_mean(column, **kwargs)
-        else:
-            return self.expanding_mean(column **kwargs)
+        if self.rolling: return self.rolling_mean(column, **kwargs)
+        else: return self.expanding_mean(column **kwargs)
         
     def sum(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_sum(column, **kwargs)
-        else:
-            return self.expanding_sum(column **kwargs)
+        if self.rolling: return self.rolling_sum(column, **kwargs)
+        else: return self.expanding_sum(column **kwargs)
         
     def quantile(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_quantile(column, **kwargs)
-        else:
-            return self.expanding_quantile(column **kwargs)
+        if self.rolling: return self.rolling_quantile(column, **kwargs)
+        else: return self.expanding_quantile(column **kwargs)
 
     def median(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_median(column, **kwargs)
-        else:
-            return self.expanding_median(column **kwargs)
+        if self.rolling: return self.rolling_median(column, **kwargs)
+        else: return self.expanding_median(column **kwargs)
         
     def std(self, column, **kwargs):
-        if self.mode == 'rolling':
-            return self.rolling_std(column, **kwargs)
-        else:
-            return self.expanding_std(column **kwargs)
+        if self.rolling: return self.rolling_std(column, **kwargs)
+        else: return self.expanding_std(column **kwargs)
