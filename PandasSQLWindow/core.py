@@ -150,7 +150,7 @@ class Window:
     def rolling_median(self, column, **kwargs):
         self.check_rolling()
         return self.rolling_quantile(column, **kwargs)
-    def expanding_std(self, column, **kwargs):
+    def rolling_std(self, column, **kwargs):
         self.check_rolling()
         s = self.rolling_window[column].std(**kwargs)
         return self.postprocess(s, reshape=True)
