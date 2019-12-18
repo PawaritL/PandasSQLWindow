@@ -155,7 +155,7 @@ class Window:
         s = self.rolling_window[column].std(**kwargs)
         return self.postprocess(s, reshape=True)
     
-     #-------- Overload Window Functions --------#   
+    #-------- Overload Window Functions --------#   
         
     def min(self, column, **kwargs):
         if self.mode == 'rolling':
