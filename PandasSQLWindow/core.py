@@ -31,7 +31,7 @@ class Window:
       Sort ascending vs. descending
 
     rows_rolling: int (default=None)
-      Number of rows to consider for rolling functions
+      Number of rows (up to and including the current row) to consider for rolling functions
       (e.g. rolling_min, rolling_max, rolling_mean)
     time_rolling: offset (default=None)
       Offset time period (e.g. '10s' for 10 seconds)
@@ -53,15 +53,20 @@ class Window:
         self.partition_by = partition_by
         self.order_by = order_by
         self.ascending = ascending
+        self.mode = None
         self.rows_rolling = None
         self.time_rolling = None
 
         self.window = data.sort_values(order_by, ascending=ascending).groupby(partition_by)
         self.rolling_window = None
         if rows_rolling is not None:
+            self.mode = 'rolling'
             self.rolling_window = self.window.rolling(rows_rolling, min_periods=1)
         elif time_rolling is not None:
+            self.mode = 'rolling'
             self.rolling_window = self.window.rolling(time_rolling, min_periods=1)
+        else:
+            self.mode = 'expanding'
         return
 
     @staticmethod
@@ -71,13 +76,13 @@ class Window:
         if sort_index: return shaped.sort_index()
         else: return shaped
 
-    def shift(self, column, periods=1):
-        s = self.window[column].shift(periods=periods)
+    def shift(self, column, **kwargs):
+        s = self.window[column].shift(**kwargs)
         return self.postprocess(s)
-    def lag(self, column, periods=1):
-        return self.shift(column, periods=periods)
-    def lead(self, column, periods=1):
-        return self.shift(column, periods=-periods)
+    def lag(self, column, **kwargs):
+        return self.shift(column, **kwargs)
+    def lead(self, column, **kwargs):
+        return self.shift(column, **kwargs)
 
     def last(self, column):
         """
@@ -86,58 +91,110 @@ class Window:
         s = self.window[column].shift().ffill()
         return self.postprocess(s)
 
-    def rank(self, method='first'):
-        s = self.window[self.order_by].rank(method=method).astype(int)
+    def rank(self, **kwargs):
+        kwargs.setdefault('method', 'first')
+        s = self.window[self.order_by].rank(**kwargs).astype(int)
         return self.postprocess(s)
 
     #-------- Expanding Window Functions --------#
     
-    def expanding_min(self, column):
-        s = self.window[column].expanding().min()
+    def expanding_min(self, column, **kwargs):
+        s = self.window[column].expanding().min(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_max(self, column):
-        s = self.window[column].expanding().max()
+    def expanding_max(self, column, **kwargs):
+        s = self.window[column].expanding().max(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_mean(self, column):
-        s = self.window[column].expanding().mean()
+    def expanding_mean(self, column, **kwargs):
+        s = self.window[column].expanding().mean(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_sum(self, column):
-        s = self.window[column].expanding().sum()
+    def expanding_sum(self, column,  **kwargs):
+        s = self.window[column].expanding().sum(**kwargs)
         return self.postprocess(s, reshape=True)
-    def cumsum(self, column):
-        return self.expanding_sum(column)
-    def expanding_quantile(self, column, q=0.5):
-        s = self.window[column].expanding().quantile(q)
+    def cumsum(self, column,**kwargs):
+        return self.expanding_sum(column, **kwargs)
+    def expanding_quantile(self, column, **kwargs):
+        s = self.window[column].expanding().quantile(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_median(self, column):
-        return self.expanding_quantile(column)
-    
+    def expanding_median(self, column,  **kwargs):
+        return self.expanding_quantile(**kwargs)
+    def expanding_std(self, column, **kwargs):
+        s = self.window[column].expanding().std(**kwargs)
+        return self.postprocess(s, reshape=True)
+
     #-------- Rolling Window Functions --------#
     
     def check_rolling(self):
         if self.rolling_window is None:
-            raise ValueError("To use rolling windows, please specify rows_rolling or time_rolling in Window definition")
+            raise TypeError("To use rolling windows, please specify rows_rolling or time_rolling in Window definition")
     
-    def rolling_min(self, column):
+    def rolling_min(self, column, **kwargs):
         self.check_rolling()
-        s = self.rolling_window[column].min()
+        s = self.rolling_window[column].min(**kwargs)
         return self.postprocess(s, reshape=True)    
-    def rolling_max(self, column):
+    def rolling_max(self, column, **kwargs):
         self.check_rolling()
-        s = self.rolling_window[column].max()
+        s = self.rolling_window[column].max(**kwargs)
         return self.postprocess(s, reshape=True)
-    def rolling_mean(self, column):
+    def rolling_mean(self, column, **kwargs):
         self.check_rolling()
-        s = self.rolling_window[column].mean()
+        s = self.rolling_window[column].mean(**kwargs)
         return self.postprocess(s, reshape=True)
-    def rolling_sum(self, column):
+    def rolling_sum(self, column, **kwargs):
         self.check_rolling()
-        s = self.rolling_window[column].sum()
+        s = self.rolling_window[column].sum(**kwargs)
         return self.postprocess(s, reshape=True)
-    def rolling_quantile(self, column, q=0.5):
+    def rolling_quantile(self, column, **kwargs):
         self.check_rolling()
-        s = self.rolling_window[column].quantile(q)
+        s = self.rolling_window[column].quantile(**kwargs)
         return self.postprocess(s, reshape=True)
-    def rolling_median(self, column):
+    def rolling_median(self, column, **kwargs):
         self.check_rolling()
-        return self.rolling_quantile(column)
+        return self.rolling_quantile(column, **kwargs)
+    def expanding_std(self, column, **kwargs):
+        self.check_rolling()
+        s = self.rolling_window[column].std(**kwargs)
+        return self.postprocess(s, reshape=True)
+    
+     #-------- Overload Window Functions --------#   
+        
+    def min(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_min(column, **kwargs)
+        else:
+            return self.expanding_min(column **kwargs)
+    
+    def max(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_max(column, **kwargs)
+        else:
+            return self.expanding_max(column **kwargs)
+    
+    def mean(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_mean(column, **kwargs)
+        else:
+            return self.expanding_mean(column **kwargs)
+        
+    def sum(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_sum(column, **kwargs)
+        else:
+            return self.expanding_sum(column **kwargs)
+        
+    def quantile(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_quantile(column, **kwargs)
+        else:
+            return self.expanding_quantile(column **kwargs)
+
+    def median(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_median(column, **kwargs)
+        else:
+            return self.expanding_median(column **kwargs)
+        
+    def std(self, column, **kwargs):
+        if self.mode == 'rolling':
+            return self.rolling_std(column, **kwargs)
+        else:
+            return self.expanding_std(column **kwargs)
