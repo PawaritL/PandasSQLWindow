@@ -102,8 +102,6 @@ class Window:
     def expanding_sum(self, column,  **kwargs):
         s = self.window[column].expanding().sum(**kwargs)
         return self.postprocess(s, reshape=True)
-    def cumsum(self, column,**kwargs):
-        return self.expanding_sum(column, **kwargs)
     def expanding_quantile(self, column, **kwargs):
         s = self.window[column].expanding().quantile(**kwargs)
         return self.postprocess(s, reshape=True)
@@ -116,8 +114,6 @@ class Window:
     def expanding_std(self, column, **kwargs):
         s = self.window[column].expanding().std(**kwargs)
         return self.postprocess(s, reshape=True)
-    def expanding_count(self, **kwargs):
-        return self.count(**kwargs)
 
     #-------- Rolling Window Functions --------#
     
@@ -157,10 +153,6 @@ class Window:
         self.check_rolling()
         s = self.rolling_window[column].std(**kwargs)
         return self.postprocess(s, reshape=True)
-    def rolling_mode(self, column, **kwargs):
-        self.check_rolling()
-        s = self.rolling_window[column].mode(**kwargs)
-        return self.postprocess(s, reshape=True)
     
     #-------- Overload Window Functions --------#   
         
@@ -176,6 +168,8 @@ class Window:
     def sum(self, column, **kwargs):
         if self.rolling: return self.rolling_sum(column, **kwargs)
         else: return self.expanding_sum(column, **kwargs)
+    def cumsum(self, column,**kwargs):
+        return self.expanding_sum(column, **kwargs)
     def quantile(self, column, **kwargs):
         if self.rolling: return self.rolling_quantile(column, **kwargs)
         else: return self.expanding_quantile(column, **kwargs)
