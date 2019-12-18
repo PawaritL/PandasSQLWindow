@@ -1,4 +1,4 @@
-class PandasSQLWindow:
+class Window:
 
     """
     SQL Window Functions in a unified, simple Pandas API.
