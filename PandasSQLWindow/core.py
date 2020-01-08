@@ -76,8 +76,7 @@ class Window:
     def lag(self, column, **kwargs):
         return self.shift(column, **kwargs)
     def lead(self, column, **kwargs):
-        if kwargs.get('periods'): kwargs['periods'] *= -1
-        else: kwargs['periods'] = -1
+        kwargs['periods'] = -kwargs['periods'] if kwargs.get('periods') else -1
         return self.shift(column, **kwargs)
     def last(self, column):
         """Finds last previously known non-nan value."""
