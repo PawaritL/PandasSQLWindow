@@ -5,6 +5,7 @@ class Window:
     Follows the ... PARTITION BY ... ORDER BY ... format from SQL.
     Especially helpful for working with data with many logically-partitioned 'groups' 
     or for those more familiar with Window Functions from SQL or Apache Spark.
+    
     Commonly requested functions:
     last() - finds the last previously known non-nan value 
              before the current row, within the same group
@@ -12,22 +13,29 @@ class Window:
             before the current row, within the same group
     lead() - finds the succeeding value
              after the current row, within the same group
+             
     The current list only serves to demonstrate a few functionalities
     and is by no means exhaustive. Please feel free to reach out with
     any suggestions or requests.
+    
     Parameters
     ----------
     data: Pandas DataFrame
+    
     partition_by: str or list of str
       Name(s) of groupby column(s)
+      
     order_by: str
       Name of sorting column. For rolling functions, this column
       must be datatime-like
+      
     ascending: bool (default=True)
       Sort ascending vs. descending
+      
     rows_rolling: int (default=None)
       Number of rows (up to and including the current row) to consider for rolling functions
       (e.g. rolling_min, rolling_max, rolling_mean)
+      
     time_rolling: offset (default=None)
       Offset time period (e.g. '10s' for 10 seconds)
       to consider for rolling functions
